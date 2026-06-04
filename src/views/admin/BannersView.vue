@@ -98,7 +98,7 @@ async function toggle(b: CategoryBanner) {
 
     <div class="mb-3">
       <select v-model="filter" class="input">
-        <option value="">всі категорії</option>
+        <option value="">усі категорії</option>
         <option v-for="c in cats" :key="c.id" :value="c.id">{{ c.name_uk }}</option>
       </select>
     </div>

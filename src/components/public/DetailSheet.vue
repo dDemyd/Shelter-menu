@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, watch } from 'vue'
 import type { Product } from '@/lib/database.types'
 import { pickName, pickDescription, t } from '@/lib/i18n'
 import { priceWithCurrency } from '@/lib/format'
@@ -22,6 +22,51 @@ const emit = defineEmits<{
 const name = computed(() => pickName(props.product))
 const desc = computed(() => pickDescription(props.product))
 const price = computed(() => props.product ? priceWithCurrency(props.product) : '')
+
+let lockedScrollY = 0
+let previousBodyStyle: Partial<CSSStyleDeclaration> | null = null
+let previousHtmlOverflow = ''
+
+function lockBodyScroll() {
+  if (previousBodyStyle) return
+  lockedScrollY = window.scrollY
+  previousHtmlOverflow = document.documentElement.style.overflow
+  previousBodyStyle = {
+    position: document.body.style.position,
+    top: document.body.style.top,
+    left: document.body.style.left,
+    right: document.body.style.right,
+    width: document.body.style.width,
+    overflow: document.body.style.overflow,
+  }
+  document.documentElement.style.overflow = 'hidden'
+  document.body.style.position = 'fixed'
+  document.body.style.top = `-${lockedScrollY}px`
+  document.body.style.left = '0'
+  document.body.style.right = '0'
+  document.body.style.width = '100%'
+  document.body.style.overflow = 'hidden'
+}
+
+function unlockBodyScroll() {
+  if (!previousBodyStyle) return
+  document.documentElement.style.overflow = previousHtmlOverflow
+  document.body.style.position = previousBodyStyle.position ?? ''
+  document.body.style.top = previousBodyStyle.top ?? ''
+  document.body.style.left = previousBodyStyle.left ?? ''
+  document.body.style.right = previousBodyStyle.right ?? ''
+  document.body.style.width = previousBodyStyle.width ?? ''
+  document.body.style.overflow = previousBodyStyle.overflow ?? ''
+  previousBodyStyle = null
+  window.scrollTo(0, lockedScrollY)
+}
+
+watch(() => props.product, product => {
+  if (product) lockBodyScroll()
+  else unlockBodyScroll()
+})
+
+onBeforeUnmount(unlockBodyScroll)
 </script>
 
 <template>

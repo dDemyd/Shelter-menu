@@ -1,12 +1,14 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useStorage } from '@vueuse/core'
 
 export const useSessionStore = defineStore('session', () => {
   const table = useStorage<string>('shelter:table', '')
   const phone = useStorage<string>('shelter:phone', '')
   const favs = useStorage<string[]>('shelter:favs', [])
-  const hiddenInSwipe = ref(new Set<string>())
+  const swipeLiked = useStorage<string[]>('shelter:swipe-liked', [])
+  const swipeHidden = useStorage<string[]>('shelter:swipe-hidden', [])
+  const hiddenInSwipe = computed(() => new Set(swipeHidden.value))
   const viewMode = useStorage<'list' | 'swipe'>('shelter:view-mode', 'list')
 
   function setTable(v: string) {
@@ -24,18 +26,33 @@ export const useSessionStore = defineStore('session', () => {
     else favs.value.splice(idx, 1)
   }
 
+  function isSwipeLiked(id: string) {
+    return swipeLiked.value.includes(id)
+  }
+
+  function likeInSwipe(id: string) {
+    if (!swipeLiked.value.includes(id)) swipeLiked.value.push(id)
+    swipeHidden.value = swipeHidden.value.filter(x => x !== id)
+  }
+
   function hideInSwipe(id: string) {
-    hiddenInSwipe.value.add(id)
+    if (!swipeHidden.value.includes(id)) swipeHidden.value.push(id)
+    swipeLiked.value = swipeLiked.value.filter(x => x !== id)
   }
 
   function resetHidden() {
-    hiddenInSwipe.value.clear()
+    swipeHidden.value = []
+  }
+
+  function resetSwipeSelection() {
+    swipeLiked.value = []
+    swipeHidden.value = []
   }
 
   const hasTable = computed(() => !!table.value)
 
   return {
-    table, phone, favs, hiddenInSwipe, viewMode, hasTable,
-    setTable, isFav, toggleFav, hideInSwipe, resetHidden,
+    table, phone, favs, swipeLiked, swipeHidden, hiddenInSwipe, viewMode, hasTable,
+    setTable, isFav, toggleFav, isSwipeLiked, likeInSwipe, hideInSwipe, resetHidden, resetSwipeSelection,
   }
 })

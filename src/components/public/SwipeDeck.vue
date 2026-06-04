@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { Product } from '@/lib/database.types'
 import { useSessionStore } from '@/stores/session'
 import { useCartStore } from '@/stores/cart'
@@ -15,43 +15,64 @@ const session = useSessionStore()
 const cart = useCartStore()
 const toast = useToast()
 
-const index = ref(0)
+const passedIds = ref<string[]>([])
+const mode = ref<'all' | 'liked'>('all')
+
+const deckProducts = computed(() => {
+  if (mode.value === 'liked') {
+    return props.products.filter(p => session.isSwipeLiked(p.id))
+  }
+  return props.products
+})
 
 const visible = computed(() => {
-  const list: Product[] = []
-  let i = index.value
-  while (list.length < 3 && i < props.products.length) {
-    const p = props.products[i]
-    if (!session.hiddenInSwipe.has(p.id)) list.push(p)
-    i++
-  }
-  return list
+  return deckProducts.value
+    .filter(p => !passedIds.value.includes(p.id) && !session.hiddenInSwipe.has(p.id))
+    .slice(0, 3)
 })
 
 const current = computed(() => visible.value[0] ?? null)
-const total = computed(() => props.products.length)
+const total = computed(() => deckProducts.value.length)
+const likedCount = computed(() => session.swipeLiked.length)
+const currentPosition = computed(() => Math.min(passedIds.value.length + 1, total.value))
 
-function next() {
-  index.value += 1
+watch(() => props.products, () => {
+  mode.value = 'all'
+  passedIds.value = []
+})
+
+function next(p: Product) {
+  if (!passedIds.value.includes(p.id)) passedIds.value.push(p.id)
 }
 
 function swipeRight(p: Product) {
-  if (!session.isFav(p.id)) session.toggleFav(p.id)
-  cart.add(p)
-  toast.success(t.value.added)
-  next()
+  session.likeInSwipe(p.id)
+  toast.success(t.value.addedFav)
+  next(p)
 }
 
 function swipeLeft(p: Product) {
   session.hideInSwipe(p.id)
   toast.show(t.value.hidden)
-  next()
+  next(p)
 }
 
 function swipeDown(p: Product) {
   cart.add(p)
   toast.success(t.value.added)
-  next()
+  next(p)
+}
+
+function reviewLiked() {
+  if (!likedCount.value) return
+  mode.value = 'liked'
+  passedIds.value = []
+}
+
+function restartSwipe() {
+  session.resetSwipeSelection()
+  mode.value = 'all'
+  passedIds.value = []
 }
 </script>
 
@@ -59,7 +80,7 @@ function swipeDown(p: Product) {
   <div class="swipe-wrap">
     <template v-if="current">
       <div class="counter font-mono text-[10px] tracking-widest uppercase text-shelter-muted text-center">
-        {{ index + 1 }} / {{ total }} · {{ t.nextCard }}
+        {{ currentPosition }} / {{ total }} · {{ t.nextCard }}
       </div>
 
       <div class="deck">
@@ -90,12 +111,18 @@ function swipeDown(p: Product) {
 
     <EmptyState
       v-else
-      :title="t.noResults"
-      :description="t.nextCard"
+      :title="likedCount ? t.swipeDone : t.noSwipeLikes"
+      :description="t.swipeDoneSub"
     >
-      <button class="btn-ghost mt-2" @click="session.resetHidden(); index = 0">
-        ↻ {{ t.swipeMode }}
-      </button>
+      <div class="done-actions">
+        <button class="btn-primary done-btn" :disabled="likedCount === 0" @click="reviewLiked">
+          <Icon name="heart" :size="16" />
+          {{ t.reviewSwipeLiked }}
+        </button>
+        <button class="btn-ghost done-btn" @click="restartSwipe">
+          ↻ {{ t.clearSwipeSelection }}
+        </button>
+      </div>
     </EmptyState>
   </div>
 </template>
@@ -139,4 +166,18 @@ function swipeDown(p: Product) {
   box-shadow: 0 8px 22px rgba(var(--accent-rgb), 0.55);
 }
 .action-btn.fav:hover { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.4); }
+.done-actions {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+.done-btn {
+  width: 100%;
+  min-height: 48px;
+  white-space: normal;
+  text-align: center;
+}
 </style>

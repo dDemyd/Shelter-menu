@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount, watch, type CSSProperties } from 'vue'
 import type { Product } from '@/lib/database.types'
 import { pickName, pickDescription } from '@/lib/i18n'
 import { priceWithCurrency } from '@/lib/format'
@@ -27,10 +27,17 @@ const { offsetX, offsetY, dragging, bind } = useSwipe(card, {
 })
 
 let unbind: (() => void) | undefined
-onMounted(() => { if (props.active) unbind = bind(card.value) })
+
+function syncBinding() {
+  unbind?.()
+  unbind = props.active ? bind(card.value) : undefined
+}
+
+onMounted(syncBinding)
+watch(() => props.active, syncBinding, { flush: 'post' })
 onBeforeUnmount(() => unbind?.())
 
-const style = computed(() => {
+const style = computed<CSSProperties>(() => {
   const scale = 1 - props.depth * 0.04
   const ty = props.depth * 12
   if (dragging.value && props.active) {
@@ -38,10 +45,14 @@ const style = computed(() => {
     return {
       transform: `translate(${offsetX.value}px, ${offsetY.value}px) rotate(${rot}deg) scale(${scale})`,
       transition: 'none',
+      zIndex: 20,
+      pointerEvents: 'auto',
     }
   }
   return {
     transform: `translateY(${ty}px) scale(${scale})`,
+    zIndex: 10 - props.depth,
+    pointerEvents: props.active ? 'auto' : 'none',
   }
 })
 
@@ -72,9 +83,9 @@ const hint = computed(() => {
       <p class="text-sm leading-snug text-shelter-muted">{{ pickDescription(product) }}</p>
     </div>
 
-    <span class="hint hint-r">+ {{ '' }}ДО ЗАМОВЛЕННЯ</span>
+    <span class="hint hint-r">♥ ОБРАНЕ</span>
     <span class="hint hint-l">× ПРИХОВАТИ</span>
-    <span class="hint hint-d">♥ ОБРАНЕ</span>
+    <span class="hint hint-d">+ ДО ЗАМОВЛЕННЯ</span>
   </article>
 </template>
 
@@ -90,7 +101,7 @@ const hint = computed(() => {
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
   transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  touch-action: pan-y;
+  touch-action: none;
   user-select: none;
 }
 .swipe-card.is-active { cursor: grab; }

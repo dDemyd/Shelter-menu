@@ -26,6 +26,8 @@ export function useSwipe(target: Ref<HTMLElement | null>, opts: UseSwipeOptions)
 
   function onPointerDown(e: PointerEvent) {
     if (!target.value) return
+    if (e.button !== 0 && e.pointerType === 'mouse') return
+    e.preventDefault()
     active = true
     dragging.value = true
     startX = e.clientX
@@ -37,12 +39,14 @@ export function useSwipe(target: Ref<HTMLElement | null>, opts: UseSwipeOptions)
 
   function onPointerMove(e: PointerEvent) {
     if (!active) return
+    e.preventDefault()
     offsetX.value = e.clientX - startX
     offsetY.value = e.clientY - startY
   }
 
   function onPointerUp(e: PointerEvent) {
     if (!active) return
+    e.preventDefault()
     active = false
     dragging.value = false
     target.value?.releasePointerCapture?.(e.pointerId)
