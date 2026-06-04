@@ -282,7 +282,7 @@ function ago(ts: string): string {
       <section class="card list-card feed-card">
         <header class="card-head">
           <h2>Останні заявки</h2>
-          <RouterLink to="/admin/call-requests" class="link-all">всі →</RouterLink>
+          <RouterLink to="/admin/call-requests" class="link-all">усі →</RouterLink>
         </header>
         <ul v-if="recent.length" class="feed-list">
           <li v-for="r in recent" :key="r.id" :style="`--st: ${statusColors[r.status]}`">

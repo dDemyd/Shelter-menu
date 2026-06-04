@@ -104,11 +104,11 @@ async function remove(p: Product) {
 
     <div class="filters">
       <select v-model="filterCat" class="input" @change="filterSub = ''">
-        <option value="">всі категорії</option>
+        <option value="">усі категорії</option>
         <option v-for="c in cats" :key="c.id" :value="c.id">{{ c.name_uk }}</option>
       </select>
       <select v-model="filterSub" class="input">
-        <option value="">всі підкатегорії</option>
+        <option value="">усі підкатегорії</option>
         <option v-for="s in subsOfFilter" :key="s.id" :value="s.id">{{ s.name_uk }}</option>
       </select>
       <input v-model="filterText" class="input" placeholder="пошук…" />

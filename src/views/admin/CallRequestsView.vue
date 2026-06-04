@@ -64,7 +64,7 @@ const filtered = computed(() => items.value)
       <h1 class="section-title text-2xl">Заявки</h1>
       <div class="flex gap-2">
         <button class="chip" :class="{ 'is-active': filter === 'new' }" @click="filter = 'new'; load()">активні</button>
-        <button class="chip" :class="{ 'is-active': filter === 'all' }" @click="filter = 'all'; load()">всі</button>
+        <button class="chip" :class="{ 'is-active': filter === 'all' }" @click="filter = 'all'; load()">усі</button>
       </div>
     </header>
 
