@@ -156,7 +156,7 @@ function ago(ts: string): string {
     <div class="hero">
       <div class="hero-meta">
         <span class="hero-label">SHELTER · CONTROL ROOM</span>
-        <h1 class="hero-title">Зведення ніч-{{ Math.floor((Date.now() - new Date('2021-01-01').getTime()) / 86_400_000) }}</h1>
+        <h1 class="hero-title">Зведення даних</h1>
       </div>
       <div class="hero-status" :class="{ closed: !isOpen }">
         <span class="hero-dot" />
