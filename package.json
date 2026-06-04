@@ -1,0 +1,39 @@
+{
+  "name": "shelter-menu",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:status": "supabase status",
+    "studio": "open http://127.0.0.1:54323",
+    "seed": "tsx --env-file=.env supabase/seed-from-handoff.ts",
+    "admin:create": "tsx --env-file=.env supabase/create-admin.ts",
+    "bootstrap": "npm run db:start && npm run seed && npm run admin:create"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "@vueuse/core": "^11.1.0",
+    "pinia": "^2.2.2",
+    "vue": "^3.5.10",
+    "vue-router": "^4.4.5",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "@vercel/node": "^3.2.21",
+    "@vitejs/plugin-vue": "^5.1.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "tsx": "^4.19.1",
+    "typescript": "~5.6.2",
+    "vite": "^5.4.8",
+    "vue-tsc": "^2.1.6"
+  }
+}
